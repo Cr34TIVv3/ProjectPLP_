@@ -1,0 +1,32 @@
+git init 
+
+
+git add #file#
+    .   (for every file)
+  
+
+git status
+
+
+git rm --cached #file#
+
+
+git commit
+
+git commit -m  'Changed main.v'
+
+
+
+git branch #branch_name# //creare branch nou
+
+
+git checkout #branch_name# //
+
+
+branch = repository-uri cu nume
+
+
+git merge #branch_name# // lipeste le branchul curent pe branch_name
+
+git clone #link#
+

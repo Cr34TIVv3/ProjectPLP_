@@ -4,6 +4,7 @@ Local Open Scope string_scope.
 Local Open Scope list_scope.
 Scheme Equality for string.
 
+(*ERRnat si ERRbool sunt pentru situatiile in care pot aparea erori *)
 
 Inductive ERRnat  :=
 | err_nat :       ERRnat
@@ -18,6 +19,7 @@ Coercion boolean: bool >-> ERRbool.
 
 Inductive AExp :=
 | avar: string -> AExp
+| anum: ERRnat -> AExp
 | aplus: AExp  -> AExp -> AExp
 | amin:  AExp  -> AExp -> AExp
 | amul:  AExp  -> AExp -> AExp
@@ -28,6 +30,8 @@ Notation "A -' B" := (amin  A B)(at level 71, left associativity).
 Notation "A *' B" := (amul  A B)(at level 69, left associativity).
 Notation "A /' B" := (adiv  A B)(at level 69, left associativity).
 Notation "A %' B" := (amod  A B)(at level 68, left associativity).
+Coercion anum: ERRnat >-> AExp.
+Coercion avar: string >-> AExp. 
 Inductive BExp :=
 | btrue:  BExp
 | bfalse: BExp
@@ -53,18 +57,65 @@ Inductive Stmt :=
 | assignNat:  string -> AExp -> Stmt
 | assignBool: string -> BExp -> Stmt
 | sequence:   Stmt   -> Stmt -> Stmt
-| while:      BExp   -> Stmt -> Stmt
+| whiledo:    BExp   -> Stmt -> Stmt
 | fordo:      Stmt   -> BExp -> Stmt -> Stmt -> Stmt
 | ifthen:     BExp   -> Stmt -> Stmt
 | ifelse:     BExp   -> Stmt -> Stmt -> Stmt.
-Notation "X nat:=  A"        := (assignNat X A)(at level 100).
-Notation "X bool:= A"        := (assignBool X A)(at level 100).
-Notation "'NATURAL' X ::= A" := (declNat X A)(at level 100).
-Notation "'BOOLEAN' X ::= A" := (declBool X A)(at level 100).
-Notation "S1 ;; S2"          := (sequence S1 S2) (at level 100, right associativity).
-Notation "'for' ( S1  B  S2 ) { S }" := (fordo S1 B S2 S) (at level 100).
+Notation "X nat:=  A"                      := (assignNat X A)   (at level 100).
+Notation "X bool:= A"                      := (assignBool X A)  (at level 100).
+Notation "'NATURAL' X ::= A"               := (declNat X A)     (at level 100).
+Notation "'BOOLEAN' X ::= A"               := (declBool X A)    (at level 100).
+Notation "S1 ;; S2"                        := (sequence S1 S2)  (at level 100, right associativity).
+Notation "'while' ( B ) { S }"             := (whiledo B S)     (at level 100).
+Notation "'for' ( S1  B  S2 ) { S }"       := (fordo S1 B S2 S) (at level 100).
+Notation "'if' ( B ) { S }"                := (ifthen B S)      (at level 100).
+Notation "'if' ( B ) { S1 } 'else' { S2 }" := (ifelse B S1 S2)  (at level 100).
+
+Inductive Result :=
+| subCode :         Stmt      -> Result (*functiile trebuie mapate cu codul lor*)
+| errUndecl :       Result
+| errAssign :       Result
+| natResult :       ERRnat  -> Result
+| booleanResult :   ERRbool -> Result
+| default :         Result. 
 
 
+(* This function is useful when we need to update the environment based on the state of a variable *)
+Definition equalOverTypes (type1 : Result) (type2 : Result) : bool :=
+  match type1 with
+| subCode sc1       => match type2 with 
+                    | subCode sc2 => true
+                    | _ => false
+                      end
+| errAssign         => match type2 with 
+                    | errAssign => true
+                    | _ => false
+                      end
+| errUndecl         => match type2 with 
+                    | errUndecl => true
+                    | _ => false
+                      end
+| default           => match type2 with 
+                    | default => true
+                    | _ => false
+                      end
+| natResult  x      => match type2 with 
+                    | natResult y => true
+                    | _ => false
+                      end
+| booleanResult x   =>match type2 with 
+                    | booleanResult y => true
+                    | _ => false
+                      end
+  end.
+
+
+Inductive typeOfMemory :=
+  | tOM_default : typeOfMemory
+  | offset :  nat -> typeOfMemory. (* contor pentru zona de memorie *)
+
+
+Scheme Equality for Mem.
 
 
 Inductive DataType :=

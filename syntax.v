@@ -72,16 +72,33 @@ Notation "A  b>= B" := (bge  A B) (at level 80).
 Notation "b!     A" := (bnot   A) (at level 77, left associativity).
 Notation "A  b&& B"  := (band A B) (at level 78, left associativity).
 Notation "A  b|| B"  := (bor  A B) (at level 79, left associativity).
+Coercion bconst: ERRbool >-> BExp.
+Inductive StrExp :=
+| strconst : ERRstring -> StrExp
+| strcat :   StrExp    -> StrExp -> StrExp
+| strtimes : StrExp    -> nat    -> StrExp.
+Notation "A  s+  B" := (strcat A B) (at level 82).
+Notation "A  s*  n" := (strtimes A n) (at level 81).
+Coercion strconst: ERRstring >-> StrExp.
 Inductive Stmt :=
-| declNat:    string -> AExp -> Stmt
-| declBool:   string -> BExp -> Stmt
-| assignNat:  string -> AExp -> Stmt
-| assignBool: string -> BExp -> Stmt
-| sequence:   Stmt   -> Stmt -> Stmt
-| whiledo:    BExp   -> Stmt -> Stmt
-| fordo:      Stmt   -> BExp -> Stmt -> Stmt -> Stmt
-| ifthen:     BExp   -> Stmt -> Stmt
-| ifelse:     BExp   -> Stmt -> Stmt -> Stmt.
+| declNat:    string -> AExp   -> Stmt
+| declBool:   string -> BExp   -> Stmt
+| declStr:    string -> StrExp -> Stmt
+
+| assignNat:  string -> AExp   -> Stmt
+| assignBool: string -> BExp   -> Stmt
+| assignStr:  string -> StrExp -> Stmt
+
+| sequence:   Stmt   -> Stmt   -> Stmt
+| whiledo:    BExp   -> Stmt   -> Stmt
+| fordo:      Stmt   -> BExp   -> Stmt -> Stmt -> Stmt
+| ifthen:     BExp   -> Stmt   -> Stmt
+| ifelse:     BExp   -> Stmt   -> Stmt -> Stmt
+
+| break:      Stmt
+| continue:   Stmt
+
+| 
 Notation "X nat:=  A"                      := (assignNat X A)   (at level 100).
 Notation "X bool:= A"                      := (assignBool X A)  (at level 100).
 Notation "'NATURAL' X ::= A"               := (declNat X A)     (at level 100).

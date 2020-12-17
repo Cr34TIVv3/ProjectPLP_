@@ -1,3 +1,20 @@
+(*
+switch
+
+lambda
+
+tipuri de variabile
+
+
+functii + functii de conversie intre tipuri de date
+
+
+clase
+
+
+tablouri
+*)
+
 (*Sintaxa cod*)
 Require Import Strings.String.
 Local Open Scope string_scope.
@@ -14,8 +31,13 @@ Inductive ERRbool :=
 | err_bool :      ERRbool
 | boolean :       bool  -> ERRbool.
 
+Inductive ERRstring :=
+| err_string :    ERRstring
+| str  :          string -> ERRstring.
+
 Coercion unsg_num: nat >-> ERRnat.
 Coercion boolean: bool >-> ERRbool.
+Coercion str:   string >-> ERRstring.
 
 Inductive AExp :=
 | avar: string -> AExp
@@ -25,18 +47,17 @@ Inductive AExp :=
 | amul:  AExp  -> AExp -> AExp
 | adiv:  AExp  -> AExp -> AExp
 | amod:  AExp  -> AExp -> AExp.
-Notation "A +' B" := (aplus A B)(at level 71, left associativity).
-Notation "A -' B" := (amin  A B)(at level 71, left associativity).
-Notation "A *' B" := (amul  A B)(at level 69, left associativity).
-Notation "A /' B" := (adiv  A B)(at level 69, left associativity).
-Notation "A %' B" := (amod  A B)(at level 68, left associativity).
+Notation "A a+ B" := (aplus A B)(at level 71, left associativity).
+Notation "A a- B" := (amin  A B)(at level 71, left associativity).
+Notation "A a* B" := (amul  A B)(at level 69, left associativity).
+Notation "A a/ B" := (adiv  A B)(at level 69, left associativity).
+Notation "A a% B" := (amod  A B)(at level 68, left associativity).
 Coercion anum: ERRnat >-> AExp.
 Coercion avar: string >-> AExp. 
 Inductive BExp :=
-| btrue:  BExp
-| bfalse: BExp
-| bnot:   BExp   -> BExp
+| bconst: ERRbool-> BExp
 | bvar:   string -> BExp
+| bnot:   BExp   -> BExp
 | blt:    AExp   -> AExp -> BExp
 | ble:    AExp   -> AExp -> BExp
 | bgt:    AExp   -> AExp -> BExp
@@ -44,13 +65,13 @@ Inductive BExp :=
 | beq:    AExp   -> AExp -> BExp
 | band:   BExp   -> BExp -> BExp
 | bor:    BExp   -> BExp -> BExp.
-Notation "A  <'  B" := (blt  A B) (at level 80).
-Notation "A  <=' B" := (ble  A B) (at level 80).
-Notation "A  >'  B" := (bgt  A B) (at level 80).
-Notation "A  >=' B" := (bge  A B) (at level 80).
-Notation "!'    A"  := (bnot   A) (at level 77, left associativity).
-Notation "A &&' B"  := (band A B) (at level 78, left associativity).
-Notation "A ||' B"  := (bor  A B) (at level 79, left associativity).
+Notation "A  b<  B" := (blt  A B) (at level 80).
+Notation "A  b<= B" := (ble  A B) (at level 80).
+Notation "A  b>  B" := (bgt  A B) (at level 80).
+Notation "A  b>= B" := (bge  A B) (at level 80).
+Notation "b!     A" := (bnot   A) (at level 77, left associativity).
+Notation "A  b&& B"  := (band A B) (at level 78, left associativity).
+Notation "A  b|| B"  := (bor  A B) (at level 79, left associativity).
 Inductive Stmt :=
 | declNat:    string -> AExp -> Stmt
 | declBool:   string -> BExp -> Stmt

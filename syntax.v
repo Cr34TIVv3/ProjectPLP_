@@ -164,29 +164,27 @@ Inductive Stmt :=
 | break:      Stmt
 | continue:   Stmt
 
-| callFun:    string -> Stmt   -> Stmt
-| callLambda: string -> Stmt   -> Stmt -> Stmt
-| returnFun:  list string      -> Stmt.
+| callFun:    string -> list string   -> Stmt
+| callLambda: string -> Stmt   -> Stmt -> Stmt.
 
-Notation "'INTEGER' X := I"                := (declInt_l X I)       (at level 90).
-Notation "'BOOLEAN' X := B"                := (declBool_l X B)      (at level 90).
-Notation "'STRING'  X := S"                := (declStr_l X S)       (at level 90).
-Notation "X int:=  I"                      := (assignInt_l X I)     (at level 90).
-Notation "X bool:= B"                      := (assignBool_l X B)    (at level 90).
-Notation "X str:=  S"                      := (assignStr_l X S)     (at level 90).
-Notation "'INTEGER' X '[-' N '-]' := L"    := (assiIntArr_l X N L)  (at level 90).
-Notation "'BOOL'    X '[-' N '-]' := L"    := (assiBoolArr_l X N L) (at level 90).
-Notation "'STRING'  X '[-' N '-]' := L"    := (assiStrArr_l X N L)  (at level 90).
-Notation "S1 ;; S2"                        := (sequence S1 S2)      (at level 93, right associativity).
-Notation "'while' ( B )  { S }"            := (whiledo B S)         (at level 89).
-Notation "'for' ( S1  B  S2 ) { S }"       := (fordo S1 B S2 S)     (at level 91).
-Notation "'if' ( B ) { S1 } 'else' { S2 }" := (ifelse B S1 S2)      (at level 91).
-Notation "'IF' ( B ) { S }"                := (ifthen B S)          (at level 91).
-Notation "'switch' ( A ) { S }"            := (switch A S)          (at level 90).
-Notation "'case' :: A    S"                := (case A S)            (at level 90).
-Notation "'call' N ( S1 )"                 := (callFun N S1)        (at level 90).
-Notation "'<return>' S"                    := (returnFun S)         (at level 90).
-Check INTEGER "asd" := 2.
+Notation "'INTEGER' X <- I"                := (declInt_l X I)       (at level 100).
+Notation "'BOOLEAN' X <- B"                := (declBool_l X B)      (at level 100).
+Notation "'STRING'  X <- S"                := (declStr_l X S)       (at level 100).
+Notation " X int<-  I"                     := (assignInt_l X I)     (at level 100).
+Notation " X bool<- B"                     := (assignBool_l X B)    (at level 100).
+Notation " X str<-  S"                     := (assignStr_l X S)     (at level 100).
+Notation "'INTEGER' X '[-' N '-]' := L"    := (assiIntArr_l X N L)  (at level 100).
+Notation "'BOOL'    X '[-' N '-]' := L"    := (assiBoolArr_l X N L) (at level 100).
+Notation "'STRING'  X '[-' N '-]' := L"    := (assiStrArr_l X N L)  (at level 100).
+Notation "S1 ;; S2"                        := (sequence S1 S2)      (at level 100, right associativity).
+Notation "'while' ( B )  { S }"            := (whiledo B S)         (at level 100).
+Notation "'for' ( S1  B  S2 ) { S }"       := (fordo S1 B S2 S)     (at level 100).
+Notation "'if' ( B ) { S1 } 'else' { S2 }" := (ifelse B S1 S2)      (at level 100).
+Notation "'IF' ( B ) { S }"                := (ifthen B S)          (at level 100).
+Notation "'switch' ( A ) { S }"            := (switch A S)          (at level 100).
+Notation "'case' :: A    S"                := (case A S)            (at level 100).
+Notation "'call' N ( S1 )"                 := (callFun N S1)        (at level 100).
+
 
 Inductive Program :=
 | seqPrg:        Program -> Program -> Program
@@ -198,48 +196,33 @@ Inductive Program :=
 | declStr_g:     string  -> StrExp -> Program
 
 | declClass:     string  -> Stmt   -> Program.
-Notation "P1 '|' P2"                   := (seqPrg P1 P2)   (at level 100).
-Notation "'MAIN' '{(' S ')}'"          := (declMain S)     (at level 90).
-Notation "'function' N  S  '{' S1 '}'" := (declFun N S S1) (at level 90).
-Notation "'GLOBAL' 'INTEGER' X ':=' I" := (declInt_g X I)  (at level 90).
-Notation "'GLOBAL' 'BOOL'    X ':=' I" := (declInt_g X I)  (at level 90).
-Notation "'GLOBAL' 'STRING'  X ':=' I" := (declInt_g X I)  (at level 90).
+Notation "P1 '|' P2"                      := (seqPrg P1 P2)   (at level 100).
+Notation "'MAIN' '{(' S ')}'"       := (declMain S)     (at level 100).
+Notation "'function' N  (( S )) { SS }"   := (declFun N S SS) (at level 100).
+Notation "'GLOBAL' 'INTEGER' X ':=' I" := (declInt_g X I)  (at level 100).
+Notation "'GLOBAL' 'BOOL'    X ':=' I" := (declInt_g X I)  (at level 100).
+Notation "'GLOBAL' 'STRING'  X ':=' I" := (declInt_g X I)  (at level 100).
 
 
-Check INTEGER "LVAL" := 2.
+Check 
+  declFun "cmmdc" ( [ "x" , "y" ] )
+  (
+      whiledo ( b! ("x" b= "y" ) )
+      (
+          ifelse ( "x" b> "y" )
+             ("x" int<- "x" a- "y")
 
-Check function "cmmdc" [ "x" , "y" ] 
-{  
-    INTEGER "LVAL" := 2 
-}. 
-
-
-Definition mycode :=
-GLOBAL INTEGER "g_var" := 3 |
-
-function "cmmdc" [ "x" , "y" ]  
-{(
-      while (!b "x" b= "y" )
-      {(
-           if ( "x" b> "y" )
-           {(
-              "x" = "x" - "y" 
-           })
-           else
-           {(
-              "y" = "y" - "x" 
-           )}
-      )} ;;
-      
-      <return> [ "x" ]
-)}
-
-MAIN
-{(
-      INTEGER "X" := 3 ;;
-      INTEGER "Y" := 9 ;;
-      call "cmmdc" [ "X" , "Y" ]
-)}.
+             ("y" int<- "y" a- "x")
+      )
+  )
+  |
+  declMain
+  (
+      INTEGER "a" <- 25 ;;
+      INTEGER "b" <- 10 ;;
+      callFun "cmmdc" [ "a" , "b" ]
+  )
+.
 
 
 

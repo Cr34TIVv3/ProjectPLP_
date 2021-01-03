@@ -52,6 +52,12 @@ Coercion boolean:  bool >-> ERRbool.
 Coercion str:      string >-> ERRstring.
 
 
+
+
+
+
+
+
 Inductive AExp :=
 | avar: string -> AExp
 | anum: ERRint -> AExp
@@ -186,6 +192,16 @@ Notation "'case' :: A    S"                := (case A S)            (at level 10
 Notation "'call' N ( S1 )"                 := (callFun N S1)        (at level 100).
 
 
+Inductive Result :=
+| subCode :         Stmt      -> Result
+| errUndecl :       Result
+| errAssign :       Result
+| default :         Result
+| intResult :       ERRint    -> Result
+| booleanResult :   ERRbool   -> Result
+| stringResult :    ERRstring -> Result.
+
+
 Inductive Program :=
 | seqPrg:        Program -> Program -> Program
 | declMain:      Stmt    -> Program
@@ -226,22 +242,28 @@ Check
 
 
 
-Inductive Result :=
-| subCode :         Stmt    -> Result (*functiile trebuie mapate cu codul lor*)
-| errUndecl :       Result
-| errAssign :       Result
-| natResult :       ERRnat  -> Result
-| booleanResult :   ERRbool -> Result
-| default :         Result. 
+Inductive Memory :=
+| mem_default : Memory
+| offset      : nat   -> Memory.
 
+
+Definition EnvMem := string -> Memory.
+Definition MemLayer := Memory -> Values.
+Definition Stack := list EnvMem.
+Inductive Config :=
+  | config : nat -> EnvMem -> MemLayer -> Stack -> Config.
+Inductive coada ( tip : Set) : Set :=
+| nill : coada tip
+| elem : tip -> coada tip -> coada tip.
+
+
+
+
+Definition Env := string-> Result.
 
 (* This function is useful when we need to update the environment based on the state of a variable *)
 Definition equalOverTypes (type1 : Result) (type2 : Result) : bool :=
   match type1 with
-| subCode sc1       => match type2 with 
-                    | subCode sc2 => true
-                    | _ => false
-                      end
 | errAssign         => match type2 with 
                     | errAssign => true
                     | _ => false
@@ -254,15 +276,70 @@ Definition equalOverTypes (type1 : Result) (type2 : Result) : bool :=
                     | default => true
                     | _ => false
                       end
-| natResult  x      => match type2 with 
-                    | natResult y => true
+| intResult  x      => match type2 with 
+                    | intResult y => true
                     | _ => false
                       end
 | booleanResult x   =>match type2 with 
                     | booleanResult y => true
                     | _ => false
                       end
+| stringResult x    =>match type2 with 
+                    | stringResult y => true
+                    | _ => false
+                      end
   end.
+
+
+Definition update (env : Env) ( x: string ) ( v : Values ) : Env :=
+fun y =>
+ if(string_beq x y)
+  then 
+      if      ( andb (check_eq_over_types (env y) err_assign ) true )  then v
+      else if ( andb (check_eq_over_types (env y) v)           true )  then v 
+      else if ( andb (check_eq_over_types (env y) default)     true )  then v 
+      else    err_assign
+  else (env y).
+
+
+Definition aplus_eroareNat (n1 n2 : eroareNat) : eroareNat :=
+  match n1, n2 with
+    | error_nat, _ => error_nat
+    | _, error_nat => error_nat
+    | int v1, int v2 =>  (v1 + v2)
+  end.
+
+Definition amin_eroareNat  (n1 n2 : eroareNat) : eroareNat :=
+  match n1, n2 with
+    | error_nat, _ => error_nat
+    | _, error_nat => error_nat
+    | int n1, int n2 => if Nat.ltb n1 n2
+                        then error_nat
+                        else  (n1 - n2)
+  end.
+
+Definition amul_eroareNat (n1 n2 : eroareNat) : eroareNat :=
+  match n1, n2 with
+    | error_nat, _ => error_nat
+    | _, error_nat => error_nat
+    | num v1, num v2 =>  (v1 * v2)
+    end.
+
+Definition adiv_eroareNat (n1 n2 : eroareNat) : eroareNat :=
+  match n1, n2 with
+    | error_nat, _ => error_nat
+    | _, error_nat => error_nat
+    | _, num 0 => error_nat
+    | num v1, num v2 =>  (Nat.div v1 v2)
+    end.
+
+Definition amod_eroareNat (n1 n2 : eroareNat) : eroareNat :=
+  match n1, n2 with
+    | error_nat, _ => error_nat
+    | _, error_nat => error_nat
+    | _, num 0 => error_nat
+    | num v1, num v2 => (v1 - v2 * (Nat.div v1 v2))
+    end.
 
 
 Inductive typeOfMemory :=
@@ -297,7 +374,6 @@ Configuratie
 
 
 Definition Stack := list Env.
-
 
 
 
